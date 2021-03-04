@@ -1,5 +1,5 @@
 /*
-  	CircusESP01Lib.cpp  (Version 4.0.0)
+  	CircusESP01Lib.cpp  (Version 1.0.0)
 
 	Implements the circusofthings.com API in Arduino devices when connected by wifi through an external ESP8266 module.
 
@@ -18,9 +18,9 @@
 #define DEBUG_DEEP 2
 
 class SoftwareSerial;
- 
+
 class CircusESP01Lib
-{ 
+{
   	public:
 		CircusESP01Lib(SoftwareSerial *Serial1,int esp01BaudRate,char *server, char *token, char *ssid, char *pass, int debugLevel);
 		void begin();
@@ -39,7 +39,7 @@ class CircusESP01Lib
 		char *_token;
 		int _debug;
 		int counter;
-		
+
 		int comp(char *whole,char *target);
 		int sendcommand(char *scom, char *dres, unsigned long timeout, int retries);
 		int senddata(int socket, char *data, int length, char *dresp, unsigned long timeout, int retries);

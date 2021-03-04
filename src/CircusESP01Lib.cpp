@@ -1,5 +1,5 @@
 /*
-  	CircusESP01Lib.cpp  (Version 4.0.0)
+  	CircusESP01Lib.cpp  (Version 1.0.0)
 
 	Implements the circusofthings.com API in Arduino devices when connected by wifi through an external ESP8266 module.
 
@@ -18,7 +18,7 @@ CircusESP01Lib::CircusESP01Lib(SoftwareSerial *Serial1, int esp01BaudRate, char 
         _pass = pass;
 	_server = server;
 	_token = token;
-	esp01Serial = Serial1;	
+	esp01Serial = Serial1;
 	_esp01BaudRate = esp01BaudRate;
 }
 
@@ -54,8 +54,8 @@ int CircusESP01Lib::sendcommand(char *scom, char *dresp, unsigned long timeout, 
         esp01Serial->print(scom);
         delay(50);
         unsigned long startTime = millis();
-        int j=0;	
-        while (millis()-startTime < timeout) {	
+        int j=0;
+        while (millis()-startTime < timeout) {
             while (esp01Serial->available()) {
                 char c = esp01Serial->read();
                 if(c!='\0') {rresp[j] = c;} else {rresp[j] = ' ';} // para más inri los huecos son \0
@@ -63,7 +63,7 @@ int CircusESP01Lib::sendcommand(char *scom, char *dresp, unsigned long timeout, 
                 j++;
                 if (strstr(rresp,dresp)) {
 			return 0;
-		}			
+		}
                 if(j>200){console(F("overflow\n"),2); return -1;}
             }
         }
@@ -100,10 +100,10 @@ int CircusESP01Lib::checkESP8266() {
 
 int CircusESP01Lib::setESP() {
 	char rOK[] = "OK\r\n";
-	char ready[] = "ready\r\n";        
-        
+	char ready[] = "ready\r\n";
+
         console(F("\n[CircusESP01Lib] Setting ESP8266 parameters\n"),1);
-	
+
         // settings
         char releaseAPcommand[] = "AT+CWQAP\r\n";
         sendcommand(releaseAPcommand,rOK,1000L,1);
@@ -112,49 +112,49 @@ int CircusESP01Lib::setESP() {
 		return -1;
 	}
 	char cwmcommand[] = "AT+CWMODE=1\r\n";
-	if(sendcommand(cwmcommand,rOK,5000L,2) != 0) { 
+	if(sendcommand(cwmcommand,rOK,5000L,2) != 0) {
 		return -1;
-	}	
+	}
 	char muxcommand[] = "AT+CIPMUX=0\r\n";
-	if(sendcommand(muxcommand,rOK,5000L,2) != 0) { 
-            return -1;           
+	if(sendcommand(muxcommand,rOK,5000L,2) != 0) {
+            return -1;
 	}
 	char infocommand[] = "AT+CIPDINFO=1\r\n";
-	if(sendcommand(infocommand,rOK,5000L,5) != 0) { 
+	if(sendcommand(infocommand,rOK,5000L,5) != 0) {
 		return -1;
 	}
 	char autocommand[] = "AT+CWAUTOCONN=0\r\n";
-	if(sendcommand(autocommand,rOK,5000L,5) != 0) { 
+	if(sendcommand(autocommand,rOK,5000L,5) != 0) {
 		return -1;
 	}
 	char dhcpcommand[] = "AT+CWDHCP=1,1\r\n";
-	if(sendcommand(dhcpcommand,rOK,5000L,5) != 0) { 
+	if(sendcommand(dhcpcommand,rOK,5000L,5) != 0) {
 		return -1;
 	}
         char rstcommand[] = "AT+RST\r\n";
 	if(sendcommand(rstcommand,ready,5000L,5) != 0) {
 		return -1;
-	} 
-        
+	}
+
 	return 0;
 }
 
 int CircusESP01Lib::connectWIFI() {
-	char rOK[] = "OK\r\n";        
+	char rOK[] = "OK\r\n";
         char command[50];
 
 	console(F("\n[CircusESP01Lib] Connect to Wifi\n"),1);
 
-        sprintf_P(command, PSTR("AT+CWJAP_CUR=\"%s\",\"%s\"\r\n"),_ssid,_pass);        
+        sprintf_P(command, PSTR("AT+CWJAP_CUR=\"%s\",\"%s\"\r\n"),_ssid,_pass);
 	if(!sendcommand(command,rOK,10000L,1) == 0) { // Get connection
 		return -1;
 	}
-        
+
         char conwcommand[] = "AT+CWJAP?\r\n";
 	if(!sendcommand(conwcommand,rOK,2000L,1) == 0) { // Check connection
 		return -1;
 	}
-        
+
         char cifcommand[] = "AT+CIFSR\r\n";
 	if(!sendcommand(cifcommand,rOK,2000L,1) == 0) { // Check connection
 		return -1;
@@ -175,7 +175,7 @@ int CircusESP01Lib::connectServer() {
 
 	console(F("\n[CircusESP01Lib] Stablishing Secure SSL connection\n"),1);
 
-        if(!sendcommand(csizecommand,rOK,5000L,1) == 0) { 
+        if(!sendcommand(csizecommand,rOK,5000L,1) == 0) {
 		return -1;
 	}
 
@@ -189,8 +189,8 @@ int CircusESP01Lib::connectServer() {
 			return -1;
 		}
 	}
-        
-	
+
+
 }
 
 int CircusESP01Lib::mef(){
@@ -206,23 +206,23 @@ int CircusESP01Lib::mef(){
     	}
 	if(connectWIFI()==0) {
     		console(F("\n[CircusESP01Lib] Wifi connected\n"),1);
-    		delay(500);		
+    		delay(500);
 	} else {
     		console(F("\n[CircusESP01Lib] Wifi connection error\n"),1);
     		return -2;
-	}    		
+	}
 	if(connectServer()>-1) {
 		console(F("\n[CircusESP01Lib] Secure SSL connection stablished\n"),1);
 		delay(500);
 	} else {
-		console(F("\n[CircusESP01Lib] Server connection failed\n"),1); 
+		console(F("\n[CircusESP01Lib] Server connection failed\n"),1);
 		return -2;
 	}
 	return 0;
 }
 
-void CircusESP01Lib::begin() {   
-	counter=0;  
+void CircusESP01Lib::begin() {
+	counter=0;
 	esp01Serial->begin(_esp01BaudRate);
 	while(mef()!=0)
 		delay(1000);
@@ -262,15 +262,15 @@ char* CircusESP01Lib::waitResponse(int timeout) {
 	int j = 0;
 	int pick = 0;
 	unsigned long startTime = millis();
-        while (millis()-startTime < timeout) {	
+        while (millis()-startTime < timeout) {
 	    	while (esp01Serial->available()) {
 		        char c = esp01Serial->read();
 		        if(_debug>1) {Serial.print(c);}
 		        if (c=='{') {pick=1;}
 		        if(pick){responsebody[j]=c;j++;}
-		        if (c=='}') {responsebody[j]='\0';pick=0;Serial.print("\n");return responsebody;}                        
+		        if (c=='}') {responsebody[j]='\0';pick=0;Serial.print("\n");return responsebody;}
 		}
-		
+
 	}
     	return responsebody;
 }
@@ -281,9 +281,9 @@ void CircusESP01Lib::write(char *key, double value) {
 	console(F("Hits: "),2);
 	console(counter,2);
 	console("\n",2);
-	
-	char bufValue[15]; 
-    	dtostrf(value,1,4,bufValue);    
+
+	char bufValue[15];
+    	dtostrf(value,1,4,bufValue);
     	char requestLine[] = "PUT /WriteValue HTTP/1.1\r\n";
 	char header2[] = "Host:www.circusofthings.com\r\n";
 	char header3[] = "User-Agent:CircusESP01Lib-3.0.0\r\n";
@@ -300,12 +300,12 @@ void CircusESP01Lib::write(char *key, double value) {
 	itoa(countBody, countBodyCharArray, 10);
 	strcat(header5, countBodyCharArray); strcat(header5, "\r\n");
     	int messageLength = count(requestLine) + count(header2) + count(header3) + count(header4) + count(header5) + 2 + count(body);
-	
-    	char listen[] = ">"; 
+
+    	char listen[] = ">";
     	char cmdBuf[20];
     	sprintf_P(cmdBuf, PSTR("AT+CIPSEND=%d\r\n"), messageLength);
-    
-    	if(sendcommand(cmdBuf,listen,1000L,1)==0) { 
+
+    	if(sendcommand(cmdBuf,listen,1000L,1)==0) {
 		esp01Serial->print(requestLine);
 		console(requestLine,2);
 		esp01Serial->print(header2);
@@ -349,7 +349,7 @@ void CircusESP01Lib::write(char *key, double value) {
 }
 
 double CircusESP01Lib::read(char *key) {
-    
+
     	counter=counter+1;
 	console(F("Hits: "),2);
 	console(counter,2);
@@ -362,10 +362,10 @@ double CircusESP01Lib::read(char *key) {
 	char header4[] = "Content-Type:application/json\r\n";
 	int messageLength = count(requestLine) + count(header2) + count(header3) + count(header4) + 2;
 
-	char listen[] = ">"; 
+	char listen[] = ">";
     	char cmdBuf[20];
     	sprintf_P(cmdBuf, PSTR("AT+CIPSEND=%d\r\n"), messageLength);
-    
+
     	if(sendcommand(cmdBuf,listen,5000L,1)==0) {
 		esp01Serial->print(requestLine);
 		console(requestLine,2);
@@ -377,7 +377,7 @@ double CircusESP01Lib::read(char *key) {
 		console(header4,2);
 		esp01Serial->print("\r\n");
 		console("\r\n",2);
-		
+
 		char *responsebody = waitResponse(5000);
 		if (responsebody!=(char)0) {
 			char labelk[] = "Key";
@@ -390,7 +390,7 @@ double CircusESP01Lib::read(char *key) {
 			console(F(" - "),1);
 			console(message,1);
 			char labelv[] = "\"Value";
-			char *value = parseServerResponse(responsebody, labelv, 2);   
+			char *value = parseServerResponse(responsebody, labelv, 2);
 			console(F(" - "),1);
 			console(value,1);
 			console('\n',1);
@@ -405,6 +405,5 @@ double CircusESP01Lib::read(char *key) {
 	    	mef();
 		return -1;
 	}
-    
-}
 
+}
