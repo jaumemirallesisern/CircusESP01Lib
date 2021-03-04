@@ -1,5 +1,5 @@
 /*
-  	CircusESP01Lib.cpp  (Version 1.0.0)
+  	CircusESP01Lib.cpp  (Version 1.0.1)
 
 	Implements the circusofthings.com API in Arduino devices when connected by wifi through an external ESP8266 module.
 

@@ -1,11 +1,10 @@
 /*
-  	CircusESP01Lib.cpp  (Version 1.0.0)
+  	CircusESP01Lib.cpp  (Version 1.0.1)
 
 	Implements the circusofthings.com API in Arduino devices when connected by wifi through an external ESP8266 module.
 
   	Created by Jaume Miralles Isern, June 26, 2019.
 */
-
 
 #include "CircusESP01Lib.h"
 #include <SoftwareSerial.h>
@@ -15,7 +14,7 @@ CircusESP01Lib::CircusESP01Lib(SoftwareSerial *Serial1, int esp01BaudRate, char 
 {
 	_debug = debugLevel;
 	_ssid = ssid;
-        _pass = pass;
+  _pass = pass;
 	_server = server;
 	_token = token;
 	esp01Serial = Serial1;
@@ -236,27 +235,31 @@ int CircusESP01Lib::count(char *text) {
 }
 
 char* CircusESP01Lib::parseServerResponse(char *r, char *label, int offset) {
-    	int labelsize = count(label);
+    	//console('\n',2);
+	//console(r,2);
+	//console('\n',2);
+	int labelsize = count(label);
     	char *ini = strstr(r,label) + labelsize + offset;
-    	static char content[100];
+    	//Serial.print(*ini);
+    	//if(*ini=='\0'){
+    		//Serial.print("...0");
+    	//}
+    	static char content[50];
     	int i=0;
-    	while (*ini!='\0'){ // may truncated occur
-        	if(*ini!='\"')
-            		content[i]=*ini;
-        	else {
-            		content[i]='\0';
-            		return content;
-        	}
+    	while (*ini!='\"' && *ini!=',' && i<20){
+        	content[i]=*ini;
         	i++; ini++;
     	}
-    	return (char)0;
+    	content[i]='\0';
+        return content;
+
 }
 
 
 
 
 char* CircusESP01Lib::waitResponse(int timeout) {
-	static char responsebody[100];
+	static char responsebody[200];
 	for( int i = 0; i < sizeof(responsebody);  ++i )
         	responsebody[i] = (char)0;
 	int j = 0;
@@ -270,6 +273,7 @@ char* CircusESP01Lib::waitResponse(int timeout) {
 		        if(pick){responsebody[j]=c;j++;}
 		        if (c=='}') {responsebody[j]='\0';pick=0;Serial.print("\n");return responsebody;}
 		}
+		responsebody[j]='\0';
 
 	}
     	return responsebody;
@@ -286,7 +290,7 @@ void CircusESP01Lib::write(char *key, double value) {
     	dtostrf(value,1,4,bufValue);
     	char requestLine[] = "PUT /WriteValue HTTP/1.1\r\n";
 	char header2[] = "Host:www.circusofthings.com\r\n";
-	char header3[] = "User-Agent:CircusESP01Lib-3.0.0\r\n";
+	char header3[] = "User-Agent:CircusESP01Lib-4.0.1\r\n";
 	char header4[] = "Content-Type:application/json\r\n";
 	char header5[] = "Content-Length: ";
     	char body[130];
@@ -358,7 +362,7 @@ double CircusESP01Lib::read(char *key) {
 	char requestLine[250];
     	sprintf_P(requestLine, PSTR("GET /ReadValue?Key=%s&Token=%s HTTP/1.1\r\n"), key, _token);
 	char header2[] = "Host:www.circusofthings.com\r\n";
-	char header3[] = "User-Agent:CircusESP01Lib-3.0.0\r\n";
+	char header3[] = "User-Agent:CircusESP01Lib-4.0.1\r\n";
 	char header4[] = "Content-Type:application/json\r\n";
 	int messageLength = count(requestLine) + count(header2) + count(header3) + count(header4) + 2;
 
@@ -380,6 +384,8 @@ double CircusESP01Lib::read(char *key) {
 
 		char *responsebody = waitResponse(5000);
 		if (responsebody!=(char)0) {
+			//char respcopy[200];
+			//strncpy(respcopy,responsebody,150);
 			char labelk[] = "Key";
 			char *key = parseServerResponse(responsebody, labelk, 3);
 			if(_debug==2) {console('\n',1);}
@@ -389,8 +395,8 @@ double CircusESP01Lib::read(char *key) {
 			char *message = parseServerResponse(responsebody, labelm, 3);
 			console(F(" - "),1);
 			console(message,1);
-			char labelv[] = "\"Value";
-			char *value = parseServerResponse(responsebody, labelv, 2);
+			char labelv[] = "\"Value\"";
+			char *value = parseServerResponse(responsebody, labelv, 1);
 			console(F(" - "),1);
 			console(value,1);
 			console('\n',1);
