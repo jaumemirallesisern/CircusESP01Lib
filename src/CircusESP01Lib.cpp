@@ -1,7 +1,7 @@
 /*
-  	CircusESP01Lib.cpp  (Version 1.0.1)
+  	CircusESP01Lib.cpp  (Version 1.1.0)
 
-	Implements the circusofthings.com API in Arduino devices when connected by wifi through an external ESP8266 module.
+		Implements the circusofthings.com API in Arduino devices when connected by wifi through an external ESP8266 module.
 
   	Created by Jaume Miralles Isern, June 26, 2019.
 */
@@ -10,8 +10,7 @@
 #include <SoftwareSerial.h>
 
 
-CircusESP01Lib::CircusESP01Lib(SoftwareSerial *Serial1, int esp01BaudRate, char *server, char *token, char *ssid, char *pass, int debugLevel)
-{
+CircusESP01Lib::CircusESP01Lib(SoftwareSerial *Serial1, int esp01BaudRate, char *server, char *token, char *ssid, char *pass, int debugLevel, int secureEnable) {
 	_debug = debugLevel;
 	_ssid = ssid;
   _pass = pass;
@@ -19,6 +18,7 @@ CircusESP01Lib::CircusESP01Lib(SoftwareSerial *Serial1, int esp01BaudRate, char 
 	_token = token;
 	esp01Serial = Serial1;
 	_esp01BaudRate = esp01BaudRate;
+	_secureEnable = secureEnable;
 }
 
 void CircusESP01Lib::console(char message, int level) {
@@ -58,11 +58,11 @@ int CircusESP01Lib::sendcommand(char *scom, char *dresp, unsigned long timeout, 
             while (esp01Serial->available()) {
                 char c = esp01Serial->read();
                 if(c!='\0') {rresp[j] = c;} else {rresp[j] = ' ';} // para más inri los huecos son \0
-		console(c,2);
+								console(c,2);
                 j++;
                 if (strstr(rresp,dresp)) {
-			return 0;
-		}
+									return 0;
+								}
                 if(j>200){console(F("overflow\n"),2); return -1;}
             }
         }
@@ -165,20 +165,34 @@ int CircusESP01Lib::connectWIFI() {
 int CircusESP01Lib::connectServer() {
 
 	char rOK[] = "OK";
-        char already[] = "ALREADY CONNECTED";
+  char already[] = "ALREADY CONNECTED";
 	char mustclose[] = "must close ssl link";
 	char error[] = "ERROR";
 
 	char csizecommand[] = "AT+CIPSSLSIZE=4096\r\n";
 	char closecommand[] = "AT+CIPCLOSE\r\n";
 
-	console(F("\n[CircusESP01Lib] Stablishing Secure SSL connection\n"),1);
 
-        if(!sendcommand(csizecommand,rOK,5000L,1) == 0) {
+  if(!sendcommand(csizecommand,rOK,5000L,1) == 0) {
 		return -1;
 	}
 
-        char startcommand[] = "AT+CIPSTART=\"SSL\",\"circusofthings.com\",443\r\n";
+	char startcommand[50];
+	if(_secureEnable == 0) {
+		console(F("\n[CircusESP01Lib] Stablishing non secure connection\n"),1);
+		strncpy(startcommand,"AT+CIPSTART=\"TCP\",\"circusofthings.com\",8023\r\n",50);
+		//startcommand = "AT+CIPSTART=\"TCP\",\"circusofthings.com\",8023\r\n";
+	} else if(_secureEnable == 1){
+		console(F("\n[CircusESP01Lib] Stablishing secure SSL connection\n"),1);
+		strncpy(startcommand,"AT+CIPSTART=\"SSL\",\"circusofthings.com\",443\r\n",50);
+		//startcommand = "AT+CIPSTART=\"SSL\",\"circusofthings.com\",443\r\n";
+	} else {
+		console(F("\n[CircusESP01Lib] Wrong _enableSecure option. Must be 0 or 1.\n"),1);
+		return -1;
+	}
+
+	// Nos secure fork library changes here.
+  //char startcommand[] = "AT+CIPSTART=\"SSL\",\"circusofthings.com\",443\r\n";
 	if(sendcommand(startcommand,rOK,15000L,1) == 0) { // Get status
 		return 0;
 	} else {
@@ -235,7 +249,7 @@ int CircusESP01Lib::count(char *text) {
 }
 
 char* CircusESP01Lib::parseServerResponse(char *r, char *label, int offset) {
-    	//console('\n',2);
+  //console('\n',2);
 	//console(r,2);
 	//console('\n',2);
 	int labelsize = count(label);
@@ -360,7 +374,7 @@ double CircusESP01Lib::read(char *key) {
 	console("\n",2);
 
 	char requestLine[250];
-    	sprintf_P(requestLine, PSTR("GET /ReadValue?Key=%s&Token=%s HTTP/1.1\r\n"), key, _token);
+  sprintf_P(requestLine, PSTR("GET /ReadValue?Key=%s&Token=%s HTTP/1.1\r\n"), key, _token);
 	char header2[] = "Host:www.circusofthings.com\r\n";
 	char header3[] = "User-Agent:CircusESP01Lib-4.0.1\r\n";
 	char header4[] = "Content-Type:application/json\r\n";

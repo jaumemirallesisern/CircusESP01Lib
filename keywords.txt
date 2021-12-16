@@ -1,18 +1,18 @@
 #######################################
-# Syntax Coloring Map For CircusWifiLib
+# Syntax Coloring Map For CircusESP01Lib
 #######################################
 
 #######################################
 # Class (KEYWORD1)
 #######################################
 
-CircusWifiLib	KEYWORD1	CircusWifiLib
+CircusESP01Lib	KEYWORD1	CircusESP01Lib
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 
-# CircusWifiLib Class
+# CircusESP01Lib Class
 begin	KEYWORD2
 read	KEYWORD2
 write	KEYWORD2

@@ -1,5 +1,5 @@
 /*
-  	CircusESP01Lib.cpp  (Version 1.0.1)
+  	CircusESP01Lib.cpp  (Version 1.1.0)
 
 	Implements the circusofthings.com API in Arduino devices when connected by wifi through an external ESP8266 module.
 
@@ -22,15 +22,16 @@ class SoftwareSerial;
 class CircusESP01Lib
 {
   	public:
-		CircusESP01Lib(SoftwareSerial *Serial1,int esp01BaudRate,char *server, char *token, char *ssid, char *pass, int debugLevel);
-		void begin();
-		void write(char *key, double value);
-                double read(char *key);
-	private:
+  		CircusESP01Lib(SoftwareSerial *Serial1,int esp01BaudRate,char *server, char *token, char *ssid, char *pass, int debugLevel, int secureEnable);
+  		void begin();
+  		void write(char *key, double value);
+      double read(char *key);
+
+   private:
 		int mef();
-                int checkTCP();
-                int checkWIFI();
-                int checkESP8266();
+    int checkTCP();
+    int checkWIFI();
+    int checkESP8266();
 		SoftwareSerial *esp01Serial;
 		int _esp01BaudRate;
 		char *_server;
@@ -38,6 +39,7 @@ class CircusESP01Lib
                 char *_pass;
 		char *_token;
 		int _debug;
+		int _secureEnable;
 		int counter;
 
 		int comp(char *whole,char *target);
@@ -46,12 +48,12 @@ class CircusESP01Lib
 		int setESP();
 		int connectWIFI();
 		int connectServer();
-                int count(char *text);
-                char* parseServerResponse(char *r, char *label, int offset);
-                char* waitResponse(int timeout);
-                void console(const __FlashStringHelper *message, int level);
-                void console(char *message, int level);
-                void console(char message, int level);
+    int count(char *text);
+    char* parseServerResponse(char *r, char *label, int offset);
+    char* waitResponse(int timeout);
+    void console(const __FlashStringHelper *message, int level);
+    void console(char *message, int level);
+    void console(char message, int level);
 		void console(int message, int level);
 };
 
